@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Webhook for transferring notification from Alertmanager to Typetalk
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  AlertManagerToTypetalkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Environment:
+        Variables:
+          TOPIC_ID: 185297
+          TOKEN: wIZARlEH11dS9BFNyTCWnMxCx2ia3LHHi7KMwj6pOhpWNsh0VXK4S80bshwi4q0C
+          DEBUG: true
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+
+Outputs:
+  AlertManagerToTypetalkApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  AlertManagerToTypetalkFunction:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt AlertManagerToTypetalkFunction.Arn
+  AlertManagerToTypetalkFunctionIamRole:
+    Description: "Implicit IAM Role created"
+    Value: !GetAtt AlertManagerToTypetalkFunctionRole.Arn

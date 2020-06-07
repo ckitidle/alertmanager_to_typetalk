@@ -1,0 +1,6 @@
+<% alerts.forEach(function (alert, index) { %>[STATE] <%= alert.status %>
+[RULE] <%= alert.labels.alertname %>
+<%= alert.generatorURL %>
+[MESSAGE] <%= alert.annotations.summary %>
+==========
+<% }); %>
