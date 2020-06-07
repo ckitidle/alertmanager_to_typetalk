@@ -3,30 +3,31 @@ const path = require('path');
 const fs = require('fs');
 const ejs = require('ejs');
 
+// Variables
 const TYPETALK_TOPIC_URL = 'https://typetalk.com/api/v1/topics/';
-const VIEWS_DIR = path.join(__dirname, 'views');
-const TOPIC_ID = process.env.TOPIC_ID || '';
-const TOKEN = process.env.TOKEN || '';
 const DEBUG = process.env.DEBUG || false;
-const TYPETALK_URL = TYPETALK_TOPIC_URL + TOPIC_ID + '?typetalkToken=' + TOKEN;
 
 /**
  * Send to Typetalk with alertmanager notification data.
- * @param {string} data Alertmanager notification data
+ * @param {string} viewsDir Views directory path
+ * @param {string} topicId Topic ID
+ * @param {string} token Typetalk access token
+ * @param {Object} data Alertmanager notification data
  * @returns {Object} Response
  * @throws Error
  */
-exports.sendToTypetalk = async (data) => {
+exports.sendToTypetalk = async (viewsDir, topicId, token, data) => {
+    const url = TYPETALK_TOPIC_URL + topicId + '?typetalkToken=' + token;
     const body = {
-        message: createTypeTalkMessage(VIEWS_DIR, TOPIC_ID, data)
+        message: createTypetalkMessage(viewsDir, topicId, data)
     };
     if (DEBUG) {
         console.log({
-            url: TYPETALK_URL,
+            url: url,
             body: body
         });
     }
-    return await axios.post(TYPETALK_URL, body);
+    return await axios.post(url, body);
 };
 
 /**
@@ -37,18 +38,31 @@ exports.sendToTypetalk = async (data) => {
  */
 exports.lambdaHandler = async (event, _context) => {
     try {
-        const res = await this.sendToTypetalk(event.body || '{}');
+        const topicId = event.pathParameters.topicId || '';
+        const token = event.queryStringParameters.typetalkToken || '';
+        if (!topicId || !token || !event.body || Object.keys(event.body).length === 0) {
+            return {
+                isBase64Encoded: false,
+                statusCode: 400,
+                headers: {},
+                body: 'Invalid request'
+            };
+        }
+
+        const viewsDir = path.join(__dirname, 'views');
+        const data = JSON.parse(event.body || '{}');
+        const response = await this.sendToTypetalk(viewsDir, topicId, token, data);
         return {
             isBase64Encoded: false,
             statusCode: 200,
             headers: {},
-            body: JSON.stringify(res.data),
+            body: JSON.stringify(response.data),
         }
     } catch (err) {
-        console.error(err);
+        console.error(err.message);
         return {
             isBase64Encoded: false,
-            statusCode: 400,
+            statusCode: 500,
             headers: {},
             body: err.message
         };
@@ -59,13 +73,12 @@ exports.lambdaHandler = async (event, _context) => {
  * Create Typetalk message.
  * @param {string} viewsDir
  * @param {string} topicId
- * @param {string} data
+ * @param {Object} data
  * @returns Typetalk message
  */
-const createTypeTalkMessage = (viewsDir, topicId, data) => {
+const createTypetalkMessage = (viewsDir, topicId, data) => {
     const template = fs.readFileSync(templatePath(viewsDir, topicId), 'utf8');
-    const json = JSON.parse(data);
-    return ejs.render(template, json);
+    return ejs.render(template, data);
 }
 
 /**
@@ -75,7 +88,7 @@ const createTypeTalkMessage = (viewsDir, topicId, data) => {
  * @return Template file path
  */
 const templatePath = (viewsDir, topicId) => {
-    let fileName = topicId + '.ejs';
+    const fileName = topicId + '.ejs';
     const template = path.join(viewsDir, fileName);
     if (fs.existsSync(template)) {
         return template;

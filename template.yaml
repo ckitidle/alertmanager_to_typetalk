@@ -15,14 +15,12 @@ Resources:
       Runtime: nodejs12.x
       Environment:
         Variables:
-          TOPIC_ID: 185297
-          TOKEN: wIZARlEH11dS9BFNyTCWnMxCx2ia3LHHi7KMwj6pOhpWNsh0VXK4S80bshwi4q0C
           DEBUG: true
       Events:
         HelloWorld:
           Type: Api
           Properties:
-            Path: /
+            Path: /{topicId}
             Method: post
 
 Outputs:

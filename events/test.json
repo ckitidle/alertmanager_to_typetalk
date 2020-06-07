@@ -1,0 +1,25 @@
+{
+    "version": "4",
+    "groupKey": 1,
+    "truncatedAlerts": 1,
+    "status": "firing",
+    "receiver": "test",
+    "groupLabels": {},
+    "commonLabels": {},
+    "commonAnnotations": {},
+    "externalURL": "http://test.example.com",
+    "alerts": [
+        {
+            "status": "firing",
+            "labels": {
+                "alertname": "alertname"
+            },
+            "annotations": {
+                "summary": "summary"
+            },
+            "startsAt": "1",
+            "endsAt": "2",
+            "generatorURL": "http://test.example.com/test1"
+        }
+    ]
+}

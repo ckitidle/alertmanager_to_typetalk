@@ -5,10 +5,10 @@
   "httpMethod": "POST",
   "isBase64Encoded": false,
   "queryStringParameters": {
-    "foo": "bar"
+    "typetalkToken": ""
   },
   "pathParameters": {
-    "proxy": "/path/to/resource"
+    "topicId": ""
   },
   "stageVariables": {
     "baz": "qux"
